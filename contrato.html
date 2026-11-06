@@ -1,0 +1,139 @@
+<link rel="stylesheet" href="estilo.css">
+
+<div class="container">
+  <h2>📄 Contrato</h2>
+
+  <select id="idCliente"></select>
+  <select id="idApartamento"></select>
+
+  <input type="date" id="inicio">
+  <input type="date" id="fin">
+  <input id="valor" placeholder="Valor mensual">
+  <input id="obs" placeholder="Observación">
+
+  <button onclick="guardar()">Guardar</button>
+
+  <ul id="lista"></ul>
+</div>
+
+<script>
+
+let editando = false;
+let idEditar = null;
+
+////////////////////////////
+// VALIDACIÓN PRO
+function validar(){
+  if(!idCliente.value || !idApartamento.value || !inicio.value || !valor.value){
+    alert("Complete los campos obligatorios");
+    return false;
+  }
+
+  if(fin.value && fin.value < inicio.value){
+    alert("Fecha fin no puede ser menor a inicio");
+    return false;
+  }
+
+  return true;
+}
+
+////////////////////////////
+// CARGAR CLIENTES
+function cargarClientes(){
+  fetch('http://localhost:3000/cliente')
+  .then(r=>r.json())
+  .then(data=>{
+    idCliente.innerHTML = '<option value="">Cliente</option>';
+    data.forEach(c=>{
+      idCliente.innerHTML += `<option value="${c.idCliente}">${c.nombre}</option>`;
+    });
+  });
+}
+
+////////////////////////////
+// CARGAR APARTAMENTOS
+function cargarApartamentos(){
+  fetch('http://localhost:3000/apartamento')
+  .then(r=>r.json())
+  .then(data=>{
+    idApartamento.innerHTML = '<option value="">Apartamento</option>';
+    data.forEach(a=>{
+      idApartamento.innerHTML += `<option value="${a.idApartamento}">${a.direccion}</option>`;
+    });
+  });
+}
+
+////////////////////////////
+// LISTAR
+function cargar(){
+  fetch('http://localhost:3000/contrato')
+  .then(r=>r.json())
+  .then(data=>{
+    lista.innerHTML='';
+
+    data.forEach(c=>{
+      lista.innerHTML += `
+        <li>
+          ${c.cliente} | ${c.direccion} | $${c.valorMensual}
+
+          <button onclick="editar(${c.idContrato}, '${c.fechaFin}', ${c.valorMensual}, '${c.observacion}')">✏️</button>
+          <button onclick="eliminar(${c.idContrato})">❌</button>
+        </li>
+      `;
+    });
+  });
+}
+
+////////////////////////////
+// GUARDAR
+function guardar(){
+
+  if(!validar()) return;
+
+  let data = {
+    idCliente: idCliente.value,
+    idApartamento: idApartamento.value,
+    fechaInicio: inicio.value,
+    fechaFin: fin.value,
+    valorMensual: valor.value,
+    observacion: obs.value
+  };
+
+  if(editando){
+    fetch('http://localhost:3000/contrato/'+idEditar,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    }).then(()=>{ editando=false; cargar(); });
+  }else{
+    fetch('http://localhost:3000/contrato',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    }).then(()=>cargar());
+  }
+}
+
+////////////////////////////
+// EDITAR
+function editar(id, finF, val, obsT){
+  editando = true;
+  idEditar = id;
+
+  fin.value = finF;
+  valor.value = val;
+  obs.value = obsT;
+}
+
+////////////////////////////
+// ELIMINAR
+function eliminar(id){
+  fetch('http://localhost:3000/contrato/'+id,{method:'DELETE'})
+  .then(()=>cargar());
+}
+
+cargar();
+cargarClientes();
+cargarApartamentos();
+
+</script>

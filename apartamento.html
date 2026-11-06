@@ -1,0 +1,164 @@
+<link rel="stylesheet" href="estilo.css">
+
+<div class="container">
+  <h2>🏢 Apartamento</h2>
+
+  <div class="formulario">
+
+    <select id="idPropietario"></select>
+    <select id="idCiudad"></select>
+
+    <input id="direccion" placeholder="Dirección">
+    <input id="habitaciones" placeholder="Habitaciones">
+    <input id="pago" placeholder="Pago mensual">
+
+    <button onclick="guardar()">Guardar</button>
+
+  </div>
+
+  <ul id="lista"></ul>
+</div>
+
+<script>
+
+let editando = false;
+let idEditar = null;
+
+////////////////////////////
+// VALIDACIÓN PRO
+function validar(){
+  let campos = ['idPropietario','idCiudad','direccion','habitaciones','pago'];
+  let ok = true;
+
+  campos.forEach(id=>{
+    let c = document.getElementById(id);
+    c.style.border = '1px solid #ccc';
+
+    if(!c.value || c.value.trim() === ''){
+      c.style.border = '2px solid red';
+      ok = false;
+    }
+  });
+
+  if(!ok) alert("Complete todos los campos");
+
+  return ok;
+}
+
+////////////////////////////
+// CARGAR PROPIETARIOS
+function cargarPropietarios(){
+  fetch('http://localhost:3000/propietario')
+  .then(r=>r.json())
+  .then(data=>{
+    let select = idPropietario;
+    select.innerHTML = '<option value="">Propietario</option>';
+
+    data.forEach(p=>{
+      select.innerHTML += `<option value="${p.idPropietario}">${p.nombre}</option>`;
+    });
+  });
+}
+
+////////////////////////////
+// CARGAR CIUDADES
+function cargarCiudades(){
+  fetch('http://localhost:3000/ciudad')
+  .then(r=>r.json())
+  .then(data=>{
+    let select = idCiudad;
+    select.innerHTML = '<option value="">Ciudad</option>';
+
+    data.forEach(c=>{
+      select.innerHTML += `<option value="${c.idCiudad}">${c.nombre}</option>`;
+    });
+  });
+}
+
+////////////////////////////
+// LISTAR
+function cargar(){
+  fetch('http://localhost:3000/apartamento')
+  .then(r=>r.json())
+  .then(data=>{
+    let lista = document.getElementById('lista');
+    lista.innerHTML='';
+
+    data.forEach(a=>{
+      lista.innerHTML += `
+        <li>
+          ${a.direccion} | ${a.propietario} | $${a.pagoMensual}
+
+          <button onclick="editar(${a.idApartamento}, '${a.direccion}', ${a.numeroHabitacion}, ${a.pagoMensual})">✏️</button>
+          <button onclick="eliminar(${a.idApartamento})">❌</button>
+        </li>
+      `;
+    });
+  });
+}
+
+////////////////////////////
+// GUARDAR
+function guardar(){
+
+  if(!validar()) return;
+
+  let data = {
+    idPropietario: idPropietario.value,
+    idCiudad: idCiudad.value,
+    direccion: direccion.value,
+    numeroHabitacion: habitaciones.value,
+    estado: 1,
+    pagoMensual: pago.value
+  };
+
+  if(editando){
+    fetch('http://localhost:3000/apartamento/'+idEditar,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    }).then(()=>{
+      reset();
+      cargar();
+    });
+  }else{
+    fetch('http://localhost:3000/apartamento',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    }).then(()=>cargar());
+  }
+}
+
+////////////////////////////
+// EDITAR
+function editar(id, dir, hab, pagoM){
+  editando = true;
+  idEditar = id;
+
+  direccion.value = dir;
+  habitaciones.value = hab;
+  pago.value = pagoM;
+}
+
+////////////////////////////
+// ELIMINAR
+function eliminar(id){
+  if(!confirm("¿Eliminar?")) return;
+
+  fetch('http://localhost:3000/apartamento/'+id,{method:'DELETE'})
+  .then(()=>cargar());
+}
+
+////////////////////////////
+// RESET
+function reset(){
+  editando = false;
+  direccion.value='';
+}
+
+cargar();
+cargarPropietarios();
+cargarCiudades();
+
+</script>

@@ -1,30 +1,60 @@
-<link rel="stylesheet" href="estilo.css">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login — Inmobiliaria</title>
+  <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<div class="login-wrap">
+  <div class="login-box">
+    <div class="login-logo">🏢 Inmobiliaria</div>
+    <p class="login-sub">Ingresa tus credenciales para continuar</p>
 
-<div class="container">
-    <h2>Login</h2>
+    <div id="alerta" class="alert"></div>
 
-    <input type="text" id="usuario" placeholder="Usuario">
-    <input type="password" id="clave" placeholder="Clave">
-
-    <button onclick="login()">Ingresar</button>
+    <div class="f">
+      <label>Usuario</label>
+      <input type="text" id="usuario" placeholder="Nombre de usuario">
+    </div>
+    <div class="f" style="margin-top:10px">
+      <label>Contraseña</label>
+      <input type="password" id="clave" placeholder="••••••••">
+    </div>
+    <button class="btn btn-p btn-full" style="margin-top:16px" onclick="login()">Ingresar</button>
+  </div>
 </div>
 
 <script>
 function login() {
-    fetch('http://localhost:3000/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            usuario: document.getElementById('usuario').value,
-            clave: document.getElementById('clave').value
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        alert(data.mensaje);
-        if (data.mensaje === "Login correcto") {
-            window.location.href = "tipopersona.html";
-        }
-    });
+  const usuario = document.getElementById('usuario').value.trim();
+  const clave   = document.getElementById('clave').value.trim();
+  if (!usuario || !clave) { mostrar('Completa todos los campos', false); return; }
+
+  fetch('http://localhost:3000/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ usuario, clave })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.mensaje === 'Login correcto') {
+      window.location.href = 'menu.html';
+    } else {
+      mostrar(data.mensaje || 'Credenciales incorrectas', false);
+    }
+  })
+  .catch(() => mostrar('Error al conectar con el servidor', false));
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+
+function mostrar(msg, ok) {
+  const a = document.getElementById('alerta');
+  a.textContent = msg;
+  a.className = 'alert ' + (ok ? 'alert-ok' : 'alert-err');
+  a.style.display = 'block';
 }
 </script>
+</body>
+</html>
