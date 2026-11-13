@@ -85,7 +85,7 @@ Despues, abrir en el navegador:
 Desde la carpeta 'backend', ejecutar:
 
 '''bash
-node --test tests/api.test.js
+npm test
 '''
 
 Las pruebas verifican:
@@ -179,7 +179,7 @@ flowchart TD
 
 - Node.js instalado
 - MySQL instalado y en funcionamiento
-- Una base de datos llamada reto2_persistenca.
+- Una base de datos llamada reto2_persistencia.
 
 ## Instalacion
 
@@ -190,7 +190,7 @@ flowchart TD
 4. Crear el archivo .env dentro de backend:
 DB_HOST=127.0.0.1
 DB_PORT=3306
-DB_USR=root
+DB_USER=root
 DB_PASSWORD=TU_CONTRASEÑA
 DB_NAME=reto2_persistencia
 PORT=3000
@@ -210,3 +210,125 @@ Se realizan pruebas de creacion, consulta, actualizacion, eliminacion y envio de
 ## 9. Conclusion
 
 El desarrollo permitio implementar una API REST con persistencia de datos utilizando TypeORM y MySQL Tambien se realizaron las operaciones CRUD y la integracion con un servicio externo mediante Axios, aplicando conceptos de desarrollo backend y comunicacion entre aplicaciones 
+
+
+# Reto 3: Aplicacion lista para el mundo real 
+
+## 1. Observabilidad 
+
+Se implemento un sistema basico de observabilidad para supervisar las solicitudes HTTP y facilitar la identificacion de errores durante la ejecucion de la aplicacion, 
+
+## Registro de solicitudes con Morgan
+
+Se integro Morgan para registrar automaticamente las solicitudes realizadas al servidor. 
+
+Los registros muestran:
+
+- Metodo HTTP utilizado.
+- Ruta solicitada. 
+- Codigo de respuesta HTTP.
+- Tiempo de respuesta en milisegundos.
+
+Ejemplo:
+
+GET /health 200 26.230 ms
+GET /usuarios 401 15.477 ms
+GET /usuarios 200 161.684 ms
+
+## Endpoint de salud
+
+Se implementa el endpoint:
+
+- Metodo: GET
+- Ruta: /health
+- URL local: http://localhost:3000/health
+
+Este endpoint permite comprobar que el servidor esta funcionando y devuelve un estado y una marca de tiempo.
+
+## 2. Manejo de errores
+
+Se implementaron mecanismos para controlar los errores de la aplicacion:
+
+- Middleware para rutas inexistentes, que devuelve el codigo HTTP 404.
+- Middleware global de errores, que registra informacion tecnica en el servidor. 
+- Respuestas JSON con mensajes generales para evitar exponer detalles internos al cliente.
+
+## 3. Seguridad 
+
+Se implemento autenticacion mediante sesiones utilizando express-session.
+
+Las principales medidas son: 
+
+- Validacion de credenciales durante el inicio de sesion
+- Creacion de una sesion cuando el usuario se autentica correctamente.
+- Proteccion de las rutas privadas mediante un middleware de verificacion de sesion.
+- Respuesta HTTP 401 cuando se intenta acceder sin una sesion valida.
+- Cierre de sesion mediante el endpoint Post /logout.
+- Uso de una variable de entorno SESSION_SECRET para configurar la sesion
+
+## 4. Validacion de datos
+
+Se incorporaron validaciones en las operaciones CRUD de usuarios para comprobar los datos recibidos 
+
+Se verifican campos obligatorios, tipo de datos, formato del correo electronico y valores validados para el identificador.
+
+Cuando los datos no cumplen las condiciones establecidas, la API devuelve una respuesta HTTP 400.
+
+## 5. Pruebas automatizadas 
+
+Se utilizo el modulo nativo: test de Node.js para ejecutar las pruebas automatizadas.
+
+Para ejecutar las pruebas desde la carpeta backend. utilizar:
+
+npm test
+
+Las pruebas verifican:
+
+1. Que el servicio devuelva correctamente un arreglo de usuarios. 
+2. Que el servicio maneje los errores HTTP de la API externa.
+3. Que el controlador devuelva una respuesta JSON correcta utilizando una dependencia simulada.
+
+Resultado de las pruebas 
+
+- Pruebas ejecutadas: 3.
+- Pruebas aprobadas: 3.
+- Pruebas fallidas: 0.
+
+## 6. Ejecucion del proyecto
+
+Para iniciar el servidor:
+
+npm start
+
+El servidor se ejecuta en el puerto 3000.
+
+Para comprobar su funcionamiento, acceder a:
+
+- http://localhost:3000/health
+
+Para ejecutar las pruebas automatizadas: 
+
+npm test
+
+## 7. Variables de entorno
+
+El proyecto utiliza un archivo .env para configurar las conexiones y otros parametros de ejecucion.
+
+Las variables necesarias incluyen:
+
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=TU_CONTRASEÑA
+DB_NAME=reto2_persistencia
+DB_LOGIN_NAME=inmobiliaria
+PORT=3000
+SESSION_SECRET=TU_SECRETO_DE_SESION
+
+Los valores reales de las contraseñas y secretos no deben publicarse en el repositorio.
+
+## 8. Conclusion 
+
+Con este reto se mejoro la preparacion para un entorno de ejecucion real mediante la incorporacion de observabilidad, registro de solicitudes, manejo centralizado de errores, autenticacion por sesiones y validaciones de datos.
+
+Tambien se implementaron pruebas automatizadas para verificar el funcionamiento de los servicios y controladores, facilitando el mantenimiento y la deteccion de errores.

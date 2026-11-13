@@ -2,20 +2,88 @@
 const { AppDataSource } = require('../config/database');
 const { Usuario } = require('../entities/Usuario');
 
-// Obtener el repositorio
 const usuarioRepository = () =>
     AppDataSource.getRepository(Usuario);
+
+// Registrar errores únicamente en el servidor
+const registrarError = (operacion, error) => {
+    console.error(`ERROR en ${operacion}:`, error.stack || error);
+};
+
+// Validar y limpiar los datos recibidos
+const validarDatosUsuario = (datos, incluirApiId = false) => {
+    const { apiId, nombre, username, email } = datos;
+
+    if (incluirApiId) {
+        const idApi = Number(apiId);
+
+        if (
+            apiId === undefined ||
+            apiId === null ||
+            apiId === '' ||
+            !Number.isInteger(idApi) ||
+            idApi <= 0
+        ) {
+            return { error: 'El apiId debe ser un número entero positivo' };
+        }
+    }
+
+    if (
+        typeof nombre !== 'string' ||
+        typeof username !== 'string' ||
+        typeof email !== 'string'
+    ) {
+        return { error: 'Los campos deben contener texto válido' };
+    }
+
+    const nombreLimpio = nombre.trim();
+    const usernameLimpio = username.trim();
+    const emailLimpio = email.trim();
+
+    if (!nombreLimpio || !usernameLimpio || !emailLimpio) {
+        return { error: 'Nombre, username y email son obligatorios' };
+    }
+
+    if (nombreLimpio.length > 150) {
+        return { error: 'El nombre no puede superar 150 caracteres' };
+    }
+
+    if (usernameLimpio.length > 100) {
+        return { error: 'El username no puede superar 100 caracteres' };
+    }
+
+    if (emailLimpio.length > 150) {
+        return { error: 'El email no puede superar 150 caracteres' };
+    }
+
+    const formatoEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!formatoEmail.test(emailLimpio)) {
+        return { error: 'El formato del correo electrónico no es válido' };
+    }
+
+    return {
+        datos: {
+            ...(incluirApiId ? { apiId: Number(apiId) } : {}),
+            nombre: nombreLimpio,
+            username: usernameLimpio,
+            email: emailLimpio
+        }
+    };
+};
 
 // CREATE: Registrar usuario
 const crearUsuario = async (req, res) => {
     try {
-        const { apiId, nombre, username, email } = req.body;
+        const validacion = validarDatosUsuario(req.body, true);
 
-        if (!apiId || !nombre || !username || !email) {
+        if (validacion.error) {
             return res.status(400).json({
-                mensaje: 'Todos los campos son obligatorios'
+                mensaje: validacion.error
             });
         }
+
+        const { apiId, nombre, username, email } = validacion.datos;
 
         const existente = await usuarioRepository().findOneBy({ apiId });
 
@@ -40,9 +108,10 @@ const crearUsuario = async (req, res) => {
         });
 
     } catch (error) {
+        registrarError('crear usuario', error);
+
         return res.status(500).json({
-            mensaje: 'Error al crear usuario',
-            detalle: error.message
+            mensaje: 'Ocurrió un error interno al crear el usuario'
         });
     }
 };
@@ -55,9 +124,10 @@ const listarUsuarios = async (req, res) => {
         return res.status(200).json(usuarios);
 
     } catch (error) {
+        registrarError('listar usuarios', error);
+
         return res.status(500).json({
-            mensaje: 'Error al consultar usuarios',
-            detalle: error.message
+            mensaje: 'Ocurrió un error interno al consultar los usuarios'
         });
     }
 };
@@ -84,9 +154,10 @@ const obtenerUsuario = async (req, res) => {
         return res.status(200).json(usuario);
 
     } catch (error) {
+        registrarError('obtener usuario', error);
+
         return res.status(500).json({
-            mensaje: 'Error al consultar usuario',
-            detalle: error.message
+            mensaje: 'Ocurrió un error interno al consultar el usuario'
         });
     }
 };
@@ -102,11 +173,11 @@ const actualizarUsuario = async (req, res) => {
             });
         }
 
-        const { nombre, username, email } = req.body;
+        const validacion = validarDatosUsuario(req.body);
 
-        if (!nombre || !username || !email) {
+        if (validacion.error) {
             return res.status(400).json({
-                mensaje: 'Nombre, username y email son obligatorios'
+                mensaje: validacion.error
             });
         }
 
@@ -118,9 +189,7 @@ const actualizarUsuario = async (req, res) => {
             });
         }
 
-        usuario.nombre = nombre;
-        usuario.username = username;
-        usuario.email = email;
+        Object.assign(usuario, validacion.datos);
 
         const actualizado = await usuarioRepository().save(usuario);
 
@@ -130,9 +199,10 @@ const actualizarUsuario = async (req, res) => {
         });
 
     } catch (error) {
+        registrarError('actualizar usuario', error);
+
         return res.status(500).json({
-            mensaje: 'Error al actualizar usuario',
-            detalle: error.message
+            mensaje: 'Ocurrió un error interno al actualizar el usuario'
         });
     }
 };
@@ -163,9 +233,10 @@ const eliminarUsuario = async (req, res) => {
         });
 
     } catch (error) {
+        registrarError('eliminar usuario', error);
+
         return res.status(500).json({
-            mensaje: 'Error al eliminar usuario',
-            detalle: error.message
+            mensaje: 'Ocurrió un error interno al eliminar el usuario'
         });
     }
 };
