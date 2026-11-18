@@ -5,7 +5,8 @@
   "main": "db.js",
   "scripts": {
     "test": "node --test tests/api.test.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test:integracion": "node --test tests/integracion.test.js"
   },
   "keywords": [],
   "author": "",
