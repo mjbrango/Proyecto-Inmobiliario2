@@ -332,3 +332,51 @@ Los valores reales de las contraseñas y secretos no deben publicarse en el repo
 Con este reto se mejoro la preparacion para un entorno de ejecucion real mediante la incorporacion de observabilidad, registro de solicitudes, manejo centralizado de errores, autenticacion por sesiones y validaciones de datos.
 
 Tambien se implementaron pruebas automatizadas para verificar el funcionamiento de los servicios y controladores, facilitando el mantenimiento y la deteccion de errores.
+
+
+## Reto 3 - Pruebas de integracion reales (CREATE, READ, DELETE)
+
+Las tres pruebas del archivo `backend/tests/integracion.test.js` validan **el flujo completo** mediante peticiones HTTP al servidor local con una sesion autenticada y comprobaciones directas en MySQL utilizando TypeORM:
+
+1. **CREATE:** `POST /usuarios` retorna HTTP 201 y el registro existe en la base de datos.
+2. **READ:** `GET /usuarios/:id` retorna HTTP 200 y exactamente los datos guardados.
+3. **DELETE:** `DELETE /usuarios/:id` elimina el registro; `GET /usuarios/:id` devuelve HTTP 404 y el registro ya no existe en MySQL.
+
+Las pruebas crean un usuario temporal con un identificador aleatorio y lo eliminan al finalizar, incluso si una comprobacion falla. No eliminan usuarios anteriores. Aun asi, se recomienda usar una base de datos de pruebas y **no interrumpir la ejecucion**, pues un cierre forzado puede impedir la limpieza.
+
+### Ejecucion en Windows PowerShell (dos terminales)
+
+Requisitos: Node.js 18 o superior, MySQL encendido, configuracion `backend/.env` correcta, y una cuenta valida de la aplicacion inmobiliaria.
+
+**Terminal 1**, desde la carpeta `backend`:
+
+```powershell
+npm install
+npm start
+```
+
+Esperar a que el servidor indique que se conecto a MySQL y escucha en el puerto 3000.
+
+**Terminal 2**, tambien desde `backend`:
+
+```powershell
+# Solicita las credenciales sin escribir la contrasena en el historial de comandos.
+$cred = Get-Credential -UserName "Maria" -Message "Credenciales del login local de Inmobiliaria"
+$env:TEST_LOGIN_USUARIO = $cred.UserName
+$env:TEST_LOGIN_CLAVE = $cred.GetNetworkCredential().Password
+
+npm run test:integracion
+
+# Borra la variable con la contrasena de esta terminal.
+Remove-Item Env:TEST_LOGIN_CLAVE
+```
+
+Si se usa otra cuenta, cambiar `Maria` por el nombre de usuario correcto. Para guardar el resultado como evidencia, tomar una **captura de las tres pruebas completadas correctamente**; no incluir contrasenas en las capturas.
+
+Las pruebas unitarias anteriores del Reto 1 siguen disponibles de forma independiente:
+
+```powershell
+npm test
+```
+
+> Si la prueba de integracion falla al iniciar, verificar que el servidor local esta encendido, las credenciales son correctas y `DB_NAME` en `.env` apunta a la misma base de datos MySQL que usa la aplicacion. La prueba de integracion no publica el proyecto en internet.
