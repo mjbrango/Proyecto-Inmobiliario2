@@ -139,16 +139,3 @@ Se configuro una lista restringida a `http://localhost:3000` para el entorno loc
 3. **Logging:** `morgan(':method :url :status :response-time ms')` registra metodo, ruta, estado y tiempo. Guardar captura de la consola del servidor con peticiones reales.
 4. **Pruebas unitarias del Reto 1:** `npm test` -> el estudiante verifico 3 pruebas aprobadas y 0 fallidas.
 5. **Pruebas de integracion del Reto 3:** `npm run test:integracion` -> el estudiante verifico 3 pruebas aprobadas y 0 fallidas, con servidor y MySQL local.
-
-Las **capturas del codigo ANTES y DESPUES de cada vulnerabilidad** son obligatorias segun la guia del Reto 3. Tener los commits y los enlaces no sustituye esas seis capturas; hay que tomarlas e incorporarlas al informe final.
-
-## Checklist para completar la entrega
-
-- [ ] Captura ANTES y DESPUES de vulnerabilidad 1
-- [ ] Captura ANTES y DESPUES de vulnerabilidad 2
-- [ ] Captura ANTES y DESPUES de vulnerabilidad 3
-- [x] Evidencias funcionales de proteccion de rutas (401, sesion valida y logout)
-- [x] Pruebas unitarias: 3/3 comprobadas en el equipo
-- [x] Pruebas de integracion: 3/3 comprobadas en el equipo
-- [ ] Captura de `/health`, logs de Morgan y resultados de ambas suites
-- [ ] Video final de maximo 10 minutos (Retos 1, 2 y 3)
