@@ -380,3 +380,7 @@ npm test
 ```
 
 > Si la prueba de integracion falla al iniciar, verificar que el servidor local esta encendido, las credenciales son correctas y `DB_NAME` en `.env` apunta a la misma base de datos MySQL que usa la aplicacion. La prueba de integracion no publica el proyecto en internet.
+
+## Informe de Hardening (Reto 3)
+
+Consultar el documento [INFORME_HARDENING.md](INFORME_HARDENING.md) para la comparacion de codigo ANTES/DESPUES de tres vulnerabilidades, riesgos, mitigaciones y checklist de capturas de evidencia.
